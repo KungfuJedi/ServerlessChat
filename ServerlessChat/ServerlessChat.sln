@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29519.181
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6298E31F-DA53-4ECE-9393-03947B5CCA62}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serverless.Chat", "Serverless.Chat\Serverless.Chat.csproj", "{798F5C4D-CB59-49C5-B459-1DF723386696}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serverless.Domain", "Serverless.Domain\Serverless.Domain.csproj", "{D0C14BB3-7729-4E00-A6AB-091A65F90BBC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{798F5C4D-CB59-49C5-B459-1DF723386696}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{798F5C4D-CB59-49C5-B459-1DF723386696}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{798F5C4D-CB59-49C5-B459-1DF723386696}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{798F5C4D-CB59-49C5-B459-1DF723386696}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0C14BB3-7729-4E00-A6AB-091A65F90BBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0C14BB3-7729-4E00-A6AB-091A65F90BBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0C14BB3-7729-4E00-A6AB-091A65F90BBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0C14BB3-7729-4E00-A6AB-091A65F90BBC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6143B2BE-B09F-4F48-B0B0-83F82E323C53}
+	EndGlobalSection
+EndGlobal
