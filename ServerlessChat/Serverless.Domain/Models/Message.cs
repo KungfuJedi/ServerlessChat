@@ -8,34 +8,32 @@ namespace Serverless.Domain.Models
     public class Message
     {
         [DynamoDBHashKey]
-        public string Id { get; }
+        [DynamoDBProperty(AttributeName = "MessageId")]
+        public string Id { get; set; }
 
-        [DynamoDBRangeKey]
-        public DateTime CreatedOnUtc { get; }
-
-        [DynamoDBProperty]
-        public DateTime ExpiresOnUtc => CreatedOnUtc.Add(TimeSpan.FromMinutes(15));
+        [DynamoDBProperty(storeAsEpoch:true)]
+        public DateTime ExpiresOnUtc { get; set; }
 
         [DynamoDBProperty]
-        public string Content { get; }
+        public string Content { get; set; }
 
         [DynamoDBProperty]
-        public string AuthorName { get; }
+        public string AuthorName { get; set; }
 
         [DynamoDBIgnore]
         public bool IsSystemMessage => string.IsNullOrEmpty(AuthorName);
 
+        public Message()
+        {
+            
+        }
+
         private Message(string id, string content, string authorName)
         {
             Id = id;
-            CreatedOnUtc = DateTime.UtcNow;
             Content = content;
             AuthorName = authorName;
-        }
-
-        public static Message Create(string content, string authorName)
-        {
-            return new Message(Guid.NewGuid().ToString(), content, authorName);
+            ExpiresOnUtc = DateTime.UtcNow.AddMinutes(15);
         }
     }
 }

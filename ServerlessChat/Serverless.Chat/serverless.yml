@@ -3,12 +3,14 @@ service: Serverless.Chat
 provider:
   name: aws
   runtime: dotnetcore2.1
-  stage: dev
+  stage: ${opt:stage, 'dev'}
   region: ap-southeast-2
-  stackName: ServerlessChat
-  apiName: ServerlessChat
+  stackName: ServerlessChat-${opt:stage}
+  apiName: ServerlessChat-${opt:stage}
   memorySize: 1024
-  logRetentionInDays: 3
+  logRetentionInDays: 1
+  environment:
+    environment: ${opt:stage}
   tracing:
     apiGateway: true
     lambda: true
@@ -19,21 +21,69 @@ package:
 
 functions:
   getMessagesFunction:
+    name: ${opt:stage}-ServerlessChat-GetRecentMessages
     handler: Serverless.Chat::Serverless.Chat.ChatFunctions::GetRecentMessages
+    role: GetMessagesRole
     events:
       - http:
           path: messages
-          method: get
-    
+          method: get 
 
-# you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+resources:
+  Resources:
+    GetMessagesRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${opt:stage}-ServerlessChat-GetRecentMessages
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: ${opt:stage}-ServerlessChat-GetRecentMessages
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:Scan
+                    - dynamodb:DescribeTable
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      - 
+                        - arn:aws:dynamodb
+                        - Ref: AWS::Region
+                        - Ref: AWS::AccountId
+                        - table/${opt:stage}-ServerlessChat-Messages
+                - Effect: Allow
+                  Action:
+                    - xray:PutTraceSegments
+                    - xray:PutTelemetryRecords
+                  Resource: '*'
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: /aws/lambda/${opt:stage}-ServerlessChat-GetRecentMessages
+
+    MessagesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${opt:stage}-ServerlessChat-Messages
+        AttributeDefinitions:
+          - AttributeName: MessageId
+            AttributeType: S
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: MessageId
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: ExpiresOnUtc
+          Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES

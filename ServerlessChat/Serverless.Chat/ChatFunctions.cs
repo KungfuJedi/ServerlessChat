@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
@@ -13,15 +12,15 @@ namespace Serverless.Chat
 {
     public class ChatFunctions
     {
-        public async Task<APIGatewayProxyResponse> GetRecentMessages(APIGatewayProxyRequest request, CancellationToken cancellationToken)
+        public async Task<APIGatewayProxyResponse> GetRecentMessages(APIGatewayProxyRequest request)
         {
             var serviceProvider = ChatDependencyContainerBuilder.ForRecentMessages();
             var dynamoClient = serviceProvider.GetService<IDynamoDbClient>();
-            var messages = await dynamoClient.GetRecentMessages(cancellationToken);
+            var messages = await dynamoClient.GetRecentMessages();
 
             return new APIGatewayProxyResponse()
                 .WithStatus(HttpStatusCode.OK)
-                .WithBody(JsonConvert.SerializeObject(messages));
+                .WithBody(JsonConvert.SerializeObject(new {Messages = messages}));
         }
     }
 }
