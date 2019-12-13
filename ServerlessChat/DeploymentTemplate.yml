@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Infrastructure resources for ServerlessChat repo
+
+Parameters:
+  Environment:
+    Type: String
+    Default: live
+
+Resources:
+  BuildUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ServerlessChat-Build
+
+  BuildPolicy:
+    DependsOn: BuildUser
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub ServerlessChat-${Environment}
+      Users:
+        - !Ref BuildUser
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:CreateBucket
+              - s3:ListBucket
+              - s3:GetBucketPolicy
+              - s3:PutEncryptionConfiguration
+              - s3:DeleteBucket
+              - s3:DeleteBucketPolicy
+              - s3:PutObject
+              - s3:GetObject
+              - s3:PutBucketPolicy
+            Resource:
+              - !Sub arn:aws:s3:::serverlesschat-${Environment}-serverlessdeploymentbucket-*
+          - Effect: Allow
+            Action:
+              - iam:CreateRole
+              - iam:PutRolePolicy
+              - iam:PassRole
+              - iam:DeleteRolePolicy
+              - iam:GetRole
+              - iam:DeleteRole
+              - iam:GetRolePolicy
+            Resource:
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-GetRecentMessages
+          - Effect: Allow
+            Action:
+              - cloudformation:DescribeStackResource
+              - cloudformation:DescribeStackEvents
+              - cloudformation:UpdateStack
+              - cloudformation:ListStackResources
+              - cloudformation:DescribeStacks
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+            Resource:
+              - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/ServerlessChat-${Environment}/*
+          - Effect: Allow
+            Action:
+              - cloudformation:ListStacks
+              - cloudformation:ValidateTemplate
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - dynamodb:DeleteTable
+              - dynamodb:DescribeTable
+              - dynamodb:UpdateTimeToLive
+              - dynamodb:DescribeTimeToLive
+              - dynamodb:CreateTable
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Environment}-ServerlessChat-Messages
+          - Effect: Allow
+            Action:
+              - apigateway:DELETE
+              - apigateway:GET
+              - apigateway:PUT
+              - apigateway:POST
+              - apigateway:PATCH
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - lambda:CreateFunction
+              - lambda:AddPermission
+              - lambda:ListVersionsByFunction
+              - lambda:GetFunction
+              - lambda:GetFunctionConfiguration
+              - lambda:DeleteFunction
+              - lambda:PublishVersion
+              - lambda:RemovePermission
+            Resource:
+              - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-GetRecentMessages
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:DeleteLogGroup
+              - logs:PutRetentionPolicy
+            Resource:
+              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-GetRecentMessages:*
+          - Effect: Allow
+            Action:
+              - logs:DescribeLogGroups
+            Resource: '*'

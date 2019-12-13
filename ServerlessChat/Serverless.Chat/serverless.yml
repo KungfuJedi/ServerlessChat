@@ -69,7 +69,7 @@ resources:
                   Action:
                     - logs:CreateLogStream
                     - logs:PutLogEvents
-                  Resource: /aws/lambda/${opt:stage}-ServerlessChat-GetRecentMessages
+                  Resource: arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-GetRecentMessages
 
     MessagesTable:
       Type: AWS::DynamoDB::Table
