@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
-using Amazon.DynamoDBv2.Model;
-using Polly;
 using Serverless.Domain.Models;
 
 namespace Serverless.Domain.AwsClients
@@ -12,6 +10,7 @@ namespace Serverless.Domain.AwsClients
     public interface IDynamoDbClient
     {
         Task<IReadOnlyList<Message>> GetRecentMessages();
+        Task<User> SignIn(string userName);
     }
 
     public class DynamoDbClient : IDynamoDbClient
@@ -22,12 +21,18 @@ namespace Serverless.Domain.AwsClients
             using (var context = CreateDynamoDbContext(client))
             {
                 var scanOperation = context.ScanAsync<Message>(new List<ScanCondition>());
+                return await scanOperation.GetRemainingAsync();
+            }
+        }
 
-                return (await Policy.Handle<ProvisionedThroughputExceededException>()
-                    .WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(1))
-                    .ExecuteAndCaptureAsync(() => scanOperation.GetRemainingAsync()))
-                    // Result on Polly, not Task
-                    .Result;
+        public async Task<User> SignIn(string userName)
+        {
+            using (var client = new AmazonDynamoDBClient())
+            using (var context = CreateDynamoDbContext(client))
+            {
+                var user = new User(userName);
+                await context.SaveAsync(user);
+                return user;
             }
         }
 

@@ -46,6 +46,7 @@ Resources:
               - iam:GetRolePolicy
             Resource:
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-GetRecentMessages
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-SignIn
           - Effect: Allow
             Action:
               - cloudformation:DescribeStackResource
@@ -71,6 +72,7 @@ Resources:
               - dynamodb:CreateTable
             Resource:
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Environment}-ServerlessChat-Messages
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Environment}-ServerlessChat-Users
           - Effect: Allow
             Action:
               - apigateway:DELETE
@@ -89,8 +91,10 @@ Resources:
               - lambda:DeleteFunction
               - lambda:PublishVersion
               - lambda:RemovePermission
+              - lambda:UpdateFunctionCode
             Resource:
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-GetRecentMessages
+              - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-SignIn
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
@@ -98,6 +102,7 @@ Resources:
               - logs:PutRetentionPolicy
             Resource:
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-GetRecentMessages:*
+              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-SignIn:*
           - Effect: Allow
             Action:
               - logs:DescribeLogGroups

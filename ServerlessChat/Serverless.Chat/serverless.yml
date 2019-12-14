@@ -27,7 +27,16 @@ functions:
     events:
       - http:
           path: messages
-          method: get 
+          method: get
+
+  signInFunction:
+    name: ${opt:stage}-ServerlessChat-SignIn
+    handler: Serverless.Chat::Serverless.Chat.ChatFunctions::SignIn
+    role: SignInRole
+    events:
+      - http:
+          path: sign-in
+          method: post 
 
 resources:
   Resources:
@@ -69,7 +78,52 @@ resources:
                   Action:
                     - logs:CreateLogStream
                     - logs:PutLogEvents
-                  Resource: arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-GetRecentMessages
+                  Resource:
+                    - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-GetRecentMessages
+                    - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-GetRecentMessages:log-stream:*
+
+    SignInRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${opt:stage}-ServerlessChat-SignIn
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: ${opt:stage}-ServerlessChat-SignIn
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:PutItem
+                    - dynamodb:UpdateItem
+                    - dynamodb:DescribeTable
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      - 
+                        - arn:aws:dynamodb
+                        - Ref: AWS::Region
+                        - Ref: AWS::AccountId
+                        - table/${opt:stage}-ServerlessChat-Users
+                - Effect: Allow
+                  Action:
+                    - xray:PutTraceSegments
+                    - xray:PutTelemetryRecords
+                  Resource: '*'
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-SignIn
+                    - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-SignIn:log-stream:*
 
     MessagesTable:
       Type: AWS::DynamoDB::Table
@@ -85,5 +139,19 @@ resources:
         TimeToLiveSpecification:
           AttributeName: ExpiresOnUtc
           Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${opt:stage}-ServerlessChat-Users
+        AttributeDefinitions:
+          - AttributeName: UserId
+            AttributeType: S
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: UserId
+            KeyType: HASH
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES
