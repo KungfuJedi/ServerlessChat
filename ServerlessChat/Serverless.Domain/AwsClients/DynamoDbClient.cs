@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
@@ -11,6 +12,8 @@ namespace Serverless.Domain.AwsClients
     {
         Task<IReadOnlyList<Message>> GetRecentMessages();
         Task<User> SignIn(string userName);
+        Task<bool> CheckUserExists(Guid userId);
+        Task SaveMessage(string userName, string content);
     }
 
     public class DynamoDbClient : IDynamoDbClient
@@ -20,8 +23,9 @@ namespace Serverless.Domain.AwsClients
             using (var client = new AmazonDynamoDBClient())
             using (var context = CreateDynamoDbContext(client))
             {
-                var scanOperation = context.ScanAsync<Message>(new List<ScanCondition>());
-                return await scanOperation.GetRemainingAsync();
+                return await context
+                    .ScanAsync<Message>(new List<ScanCondition>())
+                    .GetRemainingAsync();
             }
         }
 
@@ -34,6 +38,20 @@ namespace Serverless.Domain.AwsClients
                 await context.SaveAsync(user);
                 return user;
             }
+        }
+
+        public async Task<bool> CheckUserExists(Guid userId)
+        {
+            using (var client = new AmazonDynamoDBClient())
+            using (var context = CreateDynamoDbContext(client))
+                return await context.LoadAsync<User>(userId) != null;
+        }
+
+        public async Task SaveMessage(string userName, string content)
+        {
+            using (var client = new AmazonDynamoDBClient())
+            using (var context = CreateDynamoDbContext(client))
+                await context.SaveAsync(new Message(content, userName));
         }
 
         private static DynamoDBContext CreateDynamoDbContext(AmazonDynamoDBClient client)

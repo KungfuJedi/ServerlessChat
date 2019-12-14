@@ -36,7 +36,22 @@ functions:
     events:
       - http:
           path: sign-in
-          method: post 
+          method: post
+
+  jwtAuthorizerFunction:
+    name: ${opt:stage}-ServerlessChat-JwtAuthorizer
+    handler: Serverless.Chat::Serverless.Chat.ChatFunctions::Authorize
+    role: JwtAuthorizerRole
+
+  sendMessageFunction:
+    name: ${opt:stage}-ServerlessChat-SendMessage
+    handler: Serverless.Chat::Serverless.Chat.ChatFunctions::SendMessage
+    role: SendMessageRole
+    events:
+      - http:
+          path: message
+          method: post
+          authorizer: jwtAuthorizerFunction
 
 resources:
   Resources:
@@ -124,6 +139,91 @@ resources:
                   Resource:
                     - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-SignIn
                     - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-SignIn:log-stream:*
+
+    JwtAuthorizerRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${opt:stage}-ServerlessChat-JwtAuthorizer
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: ${opt:stage}-ServerlessChat-JwtAuthorizer
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:DescribeTable
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      - 
+                        - arn:aws:dynamodb
+                        - Ref: AWS::Region
+                        - Ref: AWS::AccountId
+                        - table/${opt:stage}-ServerlessChat-Users
+                - Effect: Allow
+                  Action:
+                    - xray:PutTraceSegments
+                    - xray:PutTelemetryRecords
+                  Resource: '*'
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-JwtAuthorizer
+                    - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-JwtAuthorizer:log-stream:*
+
+    SendMessageRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${opt:stage}-ServerlessChat-SendMessage
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: ${opt:stage}-ServerlessChat-SendMessage
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:PutItem
+                    - dynamodb:UpdateItem
+                    - dynamodb:DescribeTable
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      - 
+                        - arn:aws:dynamodb
+                        - Ref: AWS::Region
+                        - Ref: AWS::AccountId
+                        - table/${opt:stage}-ServerlessChat-Messages
+                - Effect: Allow
+                  Action:
+                    - xray:PutTraceSegments
+                    - xray:PutTelemetryRecords
+                  Resource: '*'
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-SendMessage
+                    - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-SendMessage:log-stream:*
 
     MessagesTable:
       Type: AWS::DynamoDB::Table

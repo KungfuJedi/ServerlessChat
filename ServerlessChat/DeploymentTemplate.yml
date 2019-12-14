@@ -47,6 +47,8 @@ Resources:
             Resource:
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-GetRecentMessages
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-SignIn
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-JwtAuthorizer
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-SendMessage
           - Effect: Allow
             Action:
               - cloudformation:DescribeStackResource
@@ -95,6 +97,8 @@ Resources:
             Resource:
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-GetRecentMessages
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-SignIn
+              - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-JwtAuthorizer
+              - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-SendMessage
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
@@ -103,6 +107,8 @@ Resources:
             Resource:
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-GetRecentMessages:*
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-SignIn:*
+              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-JwtAuthorizer:*
+              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-SendMessage:*
           - Effect: Allow
             Action:
               - logs:DescribeLogGroups
