@@ -1,0 +1,4 @@
+<div class="message">
+    <span class="author-name" *ngIf="!message.IsSystemMessage">{{message.AuthorName}}: </span>
+    <span class="content" [ngClass]="{'system-mesage': message.IsSystemMessage}">{{message.Content}}</span>
+</div>

@@ -1,0 +1,10 @@
+<div class="sign-in">
+    <form>
+        <mat-form-field class="input-wrapper">
+            <label for="username"></label>
+            <input matInput placeholder="username" [(ngModel)]="username" name="username">
+        </mat-form-field>
+        <br>
+        <button mat-raised-button class="button-wrapper" (click)="signIn()">sign in</button>
+    </form>
+</div>

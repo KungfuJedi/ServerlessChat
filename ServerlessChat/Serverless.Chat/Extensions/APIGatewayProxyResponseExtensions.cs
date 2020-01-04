@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using Amazon.Lambda.APIGatewayEvents;
 
 namespace Serverless.Chat.Extensions
@@ -14,6 +15,15 @@ namespace Serverless.Chat.Extensions
         public static APIGatewayProxyResponse WithBody(this APIGatewayProxyResponse response, string body)
         {
             response.Body = body;
+            return response;
+        }
+
+        public static APIGatewayProxyResponse WithCorsHeaders(this APIGatewayProxyResponse response)
+        {
+            if (response.Headers == null)
+                response.Headers = new Dictionary<string, string>();
+
+            response.Headers.Add("Access-Control-Allow-Origin", "*");
             return response;
         }
     }

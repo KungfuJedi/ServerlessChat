@@ -25,7 +25,8 @@ namespace Serverless.Chat
 
             return new APIGatewayProxyResponse()
                 .WithStatus(HttpStatusCode.OK)
-                .WithBody(JsonConvert.SerializeObject(new {Messages = messages}));
+                .WithBody(JsonConvert.SerializeObject(new {Messages = messages}))
+                .WithCorsHeaders();
         }
 
         public async Task<APIGatewayProxyResponse> SignIn(APIGatewayProxyRequest request)
@@ -33,7 +34,8 @@ namespace Serverless.Chat
             var signInRequest = JsonConvert.DeserializeObject<SignInRequest>(request.Body);
             if (signInRequest == null)
                 return new APIGatewayProxyResponse()
-                    .WithStatus(HttpStatusCode.BadRequest);
+                    .WithStatus(HttpStatusCode.BadRequest)
+                    .WithCorsHeaders();
 
             var serviceProvider = ChatDependencyContainerBuilder.ForSignIn();
             var dynamoClient = serviceProvider.GetService<IDynamoDbClient>();
@@ -47,7 +49,8 @@ namespace Serverless.Chat
                 .WithBody(JsonConvert.SerializeObject(new
                 {
                     AuthToken = token
-                }));
+                }))
+                .WithCorsHeaders();
         }
 
         public async Task<APIGatewayCustomAuthorizerResponse> Authorize(APIGatewayCustomAuthorizerRequest request)
@@ -77,7 +80,8 @@ namespace Serverless.Chat
             var sendMessageRequest = JsonConvert.DeserializeObject<SendMessageRequest>(request.Body);
             if (sendMessageRequest == null || string.IsNullOrEmpty(sendMessageRequest.Content))
                 return new APIGatewayProxyResponse()
-                    .WithStatus(HttpStatusCode.BadRequest);
+                    .WithStatus(HttpStatusCode.BadRequest)
+                    .WithCorsHeaders();
 
             var serviceProvider = ChatDependencyContainerBuilder.ForSignIn();
             var jwtService = serviceProvider.GetService<IJwtService>();
@@ -86,7 +90,8 @@ namespace Serverless.Chat
             await dynamoClient.SaveMessage(userName, sendMessageRequest.Content);
 
             return new APIGatewayProxyResponse()
-                .WithStatus(HttpStatusCode.OK);
+                .WithStatus(HttpStatusCode.OK)
+                .WithCorsHeaders();
         }
     }
 }

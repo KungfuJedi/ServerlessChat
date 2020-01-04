@@ -82,6 +82,7 @@ Resources:
               - apigateway:PUT
               - apigateway:POST
               - apigateway:PATCH
+              - apigateway:UpdateRestApiPolicy
             Resource: '*'
           - Effect: Allow
             Action:

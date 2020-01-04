@@ -28,6 +28,8 @@ functions:
       - http:
           path: messages
           method: get
+          cors:
+            origin: '*'
 
   signInFunction:
     name: ${opt:stage}-ServerlessChat-SignIn
@@ -37,6 +39,8 @@ functions:
       - http:
           path: sign-in
           method: post
+          cors:
+            origin: '*'
 
   jwtAuthorizerFunction:
     name: ${opt:stage}-ServerlessChat-JwtAuthorizer
@@ -52,6 +56,8 @@ functions:
           path: message
           method: post
           authorizer: jwtAuthorizerFunction
+          cors:
+            origin: '*'
 
 resources:
   Resources:

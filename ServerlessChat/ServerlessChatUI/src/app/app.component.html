@@ -1,0 +1,15 @@
+<header style="height: 64px;">
+  <mat-toolbar color="primary">
+    <span>Serverless Chat</span>
+  </mat-toolbar>
+</header>
+
+<main style="height: calc(100% - 150px);">
+  <chat-sign-in *ngIf="(isSignedIn$ | async) === false"></chat-sign-in>
+  <chat-messages-window *ngIf="isSignedIn$ | async"></chat-messages-window>
+</main>
+
+<mat-divider></mat-divider>
+<footer style="height: 64px;">
+  <chat-send-message *ngIf="isSignedIn$ | async"></chat-send-message>
+</footer>
