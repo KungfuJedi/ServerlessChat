@@ -1,3 +1,3 @@
 # ServerlessChat
 
-https://github.com/KungfuJedi/ServerlessChat/workflows/ServerlessChat/badge.svg
+https://github.com/KungfuJedi/ServerlessChat/workflows/ServerlessChat-Build/badge.svg
