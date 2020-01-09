@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  baseUrl: 'https://kyu9dpaiub.execute-api.ap-southeast-2.amazonaws.com/rhys'
+  baseUrl: 'https://kyu9dpaiub.execute-api.ap-southeast-2.amazonaws.com/rhys',
+  websocketUrl: 'wss://4ua3s96pzc.execute-api.ap-southeast-2.amazonaws.com/rhys'
 };
 
 /*

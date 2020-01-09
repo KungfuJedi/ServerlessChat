@@ -41,5 +41,14 @@ namespace Serverless.Chat
 
             return serviceProvider.BuildServiceProvider();
         }
+
+        public static IServiceProvider ForConnect()
+        {
+            var serviceProvider = new ServiceCollection();
+            serviceProvider.AddTransient<IDynamoDbClient, DynamoDbClient>();
+            serviceProvider.AddTransient<IJwtService, JwtService>();
+
+            return serviceProvider.BuildServiceProvider();
+        }
     }
 }

@@ -14,6 +14,7 @@ namespace Serverless.Domain.AwsClients
         Task<User> SignIn(string userName);
         Task<bool> CheckUserExists(Guid userId);
         Task SaveMessage(string userName, string content);
+        Task SaveConnectionId(string connectionId, Guid userId);
     }
 
     public class DynamoDbClient : IDynamoDbClient
@@ -45,6 +46,20 @@ namespace Serverless.Domain.AwsClients
             using (var client = new AmazonDynamoDBClient())
             using (var context = CreateDynamoDbContext(client))
                 return await context.LoadAsync<User>(userId) != null;
+        }
+
+        public async Task SaveConnectionId(string connectionId, Guid userId)
+        {
+            using (var client = new AmazonDynamoDBClient())
+            using (var context = CreateDynamoDbContext(client))
+            {
+                var user = await context.LoadAsync<User>(userId);
+                if (user == null)
+                    return;
+
+                user.ConnectionId = connectionId;
+                await context.SaveAsync(user);
+            }
         }
 
         public async Task SaveMessage(string userName, string content)

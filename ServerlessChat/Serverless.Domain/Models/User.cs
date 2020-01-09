@@ -14,6 +14,9 @@ namespace Serverless.Domain.Models
         [DynamoDBProperty]
         public string UserName { get; set; }
 
+        [DynamoDBProperty]
+        public string ConnectionId { get; set; }
+
         public User()
         {
             

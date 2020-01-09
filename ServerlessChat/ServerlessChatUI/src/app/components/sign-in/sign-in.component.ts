@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from 'src/app/services/auth.service';
 import { AppStateService } from 'src/app/services/app-state.service';
+import { WebsocketsService } from 'src/app/services/websockets.service';
 
 @Component({
   selector: 'chat-sign-in',
@@ -17,6 +18,8 @@ export class SignInComponent implements OnInit {
 
   signIn(): void {
     this.authService.signIn(this.username)
-      .subscribe(res => this.appStateService.applyAuthToken(res.AuthToken));
+      .subscribe(res => {
+        this.appStateService.applyAuthToken(res.AuthToken);
+      });
   }
 }

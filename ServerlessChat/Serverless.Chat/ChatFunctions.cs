@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Amazon.Lambda.APIGatewayEvents;
@@ -83,7 +84,7 @@ namespace Serverless.Chat
                     .WithStatus(HttpStatusCode.BadRequest)
                     .WithCorsHeaders();
 
-            var serviceProvider = ChatDependencyContainerBuilder.ForSignIn();
+            var serviceProvider = ChatDependencyContainerBuilder.ForSendMessage();
             var jwtService = serviceProvider.GetService<IJwtService>();
             var userName = jwtService.GetClaim(request.Headers["Authorization"], Claims.UserName);
             var dynamoClient = serviceProvider.GetService<IDynamoDbClient>();
@@ -92,6 +93,29 @@ namespace Serverless.Chat
             return new APIGatewayProxyResponse()
                 .WithStatus(HttpStatusCode.OK)
                 .WithCorsHeaders();
+        }
+
+        public async Task<APIGatewayProxyResponse> Connect(APIGatewayProxyRequest request)
+        {
+            if (!request.MultiValueHeaders.TryGetValue("Sec-WebSocket-Protocol", out var token))
+                return new APIGatewayProxyResponse()
+                    .WithStatus(HttpStatusCode.Unauthorized);
+
+            var serviceProvider = ChatDependencyContainerBuilder.ForConnect();
+
+            var connectionId = request.RequestContext.ConnectionId;
+
+            var jwtService = serviceProvider.GetService<IJwtService>();
+            var userId = jwtService.VerifyJwt(token.First());
+            if (!userId.HasValue)
+                return new APIGatewayProxyResponse()
+                    .WithStatus(HttpStatusCode.Unauthorized);
+
+            var dynamoClient = serviceProvider.GetService<IDynamoDbClient>();
+            await dynamoClient.SaveConnectionId(connectionId, userId.Value);
+
+            return new APIGatewayProxyResponse()
+                .WithStatus(HttpStatusCode.OK);
         }
     }
 }
