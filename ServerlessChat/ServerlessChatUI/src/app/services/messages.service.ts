@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { HttpClient, HttpResponseBase, HttpHeaders } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { Message } from '../models/message';
@@ -9,6 +9,7 @@ import { AppStateService } from './app-state.service';
   providedIn: 'root'
 })
 export class MessagesService {
+  private newMessagesSubject: Subject<Message> = new Subject<Message>();
 
   constructor(private http: HttpClient, private appStateService: AppStateService) { }
 
@@ -17,10 +18,16 @@ export class MessagesService {
   }
 
   sendMessage(content: string): Observable<HttpResponseBase> {
-    console.log(content);
-    console.log(this.appStateService.authToken);
     return this.http.post<HttpResponseBase>(`${environment.baseUrl}/message`, {Content: content},
       {headers: new HttpHeaders().set('Authorization', this.appStateService.authToken)});
+  }
+
+  onNewMessage(message: Message): void {
+    this.newMessagesSubject.next(message);
+  }
+
+  newMessages$(): Observable<Message> {
+    return this.newMessagesSubject.asObservable();
   }
 }
 

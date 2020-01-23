@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.Model;
 using Serverless.Domain.Constants;
 
 namespace Serverless.Domain.Models
@@ -34,6 +36,18 @@ namespace Serverless.Domain.Models
             Content = content;
             AuthorName = authorName;
             ExpiresOnUtc = DateTime.UtcNow.AddMinutes(15);
+        }
+
+        public static Message FromStreamRecord(Dictionary<string, AttributeValue> streamRecord)
+        {
+            var message = new Message();
+            if (streamRecord.TryGetValue(nameof(Content), out var content))
+                message.Content = content.S;
+
+            if (streamRecord.TryGetValue(nameof(AuthorName), out var authorName))
+                message.AuthorName = authorName.S;
+
+            return message;
         }
     }
 }

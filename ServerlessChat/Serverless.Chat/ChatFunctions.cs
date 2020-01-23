@@ -2,14 +2,18 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Amazon.ApiGatewayManagementApi;
+using Amazon.DynamoDBv2;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
+using Amazon.Lambda.DynamoDBEvents;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Serverless.Chat.Extensions;
 using Serverless.Chat.Requests;
 using Serverless.Domain.Authentication;
 using Serverless.Domain.AwsClients;
+using Serverless.Domain.Models;
 using JsonSerializer = Amazon.Lambda.Serialization.Json.JsonSerializer;
 
 [assembly: LambdaSerializer(typeof(JsonSerializer))]
@@ -116,6 +120,23 @@ namespace Serverless.Chat
 
             return new APIGatewayProxyResponse()
                 .WithStatus(HttpStatusCode.OK);
+        }
+
+        public async Task MessageUpdated(DynamoDBEvent streamEvent)
+        {
+            var serviceProvider = ChatDependencyContainerBuilder.ForMessageUpdated();
+            var dynamoClient = serviceProvider.GetService<IDynamoDbClient>();
+            var users = await dynamoClient.GetUsers();
+            foreach (var streamRecord in streamEvent.Records)
+            {
+                if (streamRecord.EventName != OperationType.INSERT)
+                    return;
+
+                var message = Message.FromStreamRecord(streamRecord.Dynamodb.NewImage);
+                var apiClient = serviceProvider.GetService<IApiGatewayClient>();
+                foreach (var user in users)
+                    await apiClient.PostMessage(user.ConnectionId, message);
+            }
         }
     }
 }

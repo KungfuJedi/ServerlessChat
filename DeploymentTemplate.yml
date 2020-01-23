@@ -63,6 +63,7 @@ Resources:
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-JwtAuthorizer
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-SendMessage
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-Connect
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-MessageUpdated
           - Effect: Allow
             Action:
               - cloudformation:DescribeStackResource
@@ -115,6 +116,13 @@ Resources:
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-JwtAuthorizer
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-SendMessage
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-Connect
+              - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-MessageUpdated
+          - Effect: Allow
+            Action:
+              - lambda:CreateEventSourceMapping
+              - lambda:GetEventSourceMapping
+              - lambda:DeleteEventSourceMapping
+            Resource: '*'
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
@@ -126,6 +134,7 @@ Resources:
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-JwtAuthorizer:*
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-SendMessage:*
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-Connect:*
+              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-MessageUpdated:*
           - Effect: Allow
             Action:
               - logs:DescribeLogGroups

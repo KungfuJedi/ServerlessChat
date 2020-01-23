@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
 using Serverless.Domain.Models;
 
 namespace Serverless.Domain.AwsClients
@@ -15,6 +15,7 @@ namespace Serverless.Domain.AwsClients
         Task<bool> CheckUserExists(Guid userId);
         Task SaveMessage(string userName, string content);
         Task SaveConnectionId(string connectionId, Guid userId);
+        Task<IReadOnlyList<User>> GetUsers();
     }
 
     public class DynamoDbClient : IDynamoDbClient
@@ -67,6 +68,13 @@ namespace Serverless.Domain.AwsClients
             using (var client = new AmazonDynamoDBClient())
             using (var context = CreateDynamoDbContext(client))
                 await context.SaveAsync(new Message(content, userName));
+        }
+
+        public async Task<IReadOnlyList<User>> GetUsers()
+        {
+            using (var client = new AmazonDynamoDBClient())
+            using (var context = CreateDynamoDbContext(client))
+                return await context.FromScanAsync<User>(new ScanOperationConfig()).GetRemainingAsync();
         }
 
         private static DynamoDBContext CreateDynamoDbContext(AmazonDynamoDBClient client)

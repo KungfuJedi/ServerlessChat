@@ -16,6 +16,6 @@ export class SendMessageComponent implements OnInit {
 
   sendMessage(): void {
     this.messagesService.sendMessage(this.message)
-      .subscribe();
+      .subscribe(_ => this.message = '');
   }
 }

@@ -15,5 +15,7 @@ export class MessagesWindowComponent implements OnInit {
   ngOnInit() {
     this.messagesService.getMessages()
       .subscribe(res => this.messages = res.Messages);
+
+    this.messagesService.newMessages$().subscribe(message => this.messages.push(message));
   }
 }
