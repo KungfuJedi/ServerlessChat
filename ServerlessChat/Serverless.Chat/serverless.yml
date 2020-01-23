@@ -78,6 +78,18 @@ functions:
           arn:
             Fn::GetAtt: [MessagesTable, StreamArn]
 
+  userUpdatedFunction:
+    name: ${opt:stage}-ServerlessChat-UserUpdated
+    handler: Serverless.Chat::Serverless.Chat.ChatFunctions::UserUpdated
+    role: UserUpdatedRole
+    environment:
+      ws_id: !Ref WebsocketsApi
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [UsersTable, StreamArn]
+
 resources:
   Resources:
     GetMessagesRole:
@@ -349,6 +361,67 @@ resources:
                   Resource:
                     - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-MessageUpdated
                     - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-MessageUpdated:log-stream:*
+                - Effect: Allow
+                  Action:
+                    - execute-api:ManageConnections
+                  Resource:
+                    - '*'
+
+    UserUpdatedRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${opt:stage}-ServerlessChat-UserUpdated
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: ${opt:stage}-ServerlessChat-UserUpdated
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:Scan
+                    - dynamodb:DescribeTable
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      - 
+                        - arn:aws:dynamodb
+                        - Ref: AWS::Region
+                        - Ref: AWS::AccountId
+                        - table/${opt:stage}-ServerlessChat-Users
+                - Effect: Allow
+                  Action:
+                    - dynamodb:DescribeStream
+                    - dynamodb:GetRecords
+                    - dynamodb:GetShardIterator
+                    - dynamodb:ListStreams
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      - 
+                        - arn:aws:dynamodb
+                        - Ref: AWS::Region
+                        - Ref: AWS::AccountId
+                        - table/${opt:stage}-ServerlessChat-Users/stream/*
+                - Effect: Allow
+                  Action:
+                    - xray:PutTraceSegments
+                    - xray:PutTelemetryRecords
+                  Resource: '*'
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-UserUpdated
+                    - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-UserUpdated:log-stream:*
                 - Effect: Allow
                   Action:
                     - execute-api:ManageConnections

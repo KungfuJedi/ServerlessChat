@@ -64,6 +64,7 @@ Resources:
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-SendMessage
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-Connect
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-MessageUpdated
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-UserUpdated
           - Effect: Allow
             Action:
               - cloudformation:DescribeStackResource
@@ -117,6 +118,7 @@ Resources:
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-SendMessage
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-Connect
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-MessageUpdated
+              - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-UserUpdated
           - Effect: Allow
             Action:
               - lambda:CreateEventSourceMapping
@@ -135,6 +137,7 @@ Resources:
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-SendMessage:*
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-Connect:*
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-MessageUpdated:*
+              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-UserUpdated:*
           - Effect: Allow
             Action:
               - logs:DescribeLogGroups

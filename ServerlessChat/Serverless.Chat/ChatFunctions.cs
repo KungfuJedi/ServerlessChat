@@ -132,7 +132,24 @@ namespace Serverless.Chat
                 if (streamRecord.EventName != OperationType.INSERT)
                     return;
 
-                var message = Message.FromStreamRecord(streamRecord.Dynamodb.NewImage);
+                var message = Message.NewMessageFromStreamRecord(streamRecord.Dynamodb.NewImage);
+                var apiClient = serviceProvider.GetService<IApiGatewayClient>();
+                foreach (var user in users)
+                    await apiClient.PostMessage(user.ConnectionId, message);
+            }
+        }
+
+        public async Task UserUpdated(DynamoDBEvent streamEvent)
+        {
+            var serviceProvider = ChatDependencyContainerBuilder.ForUserUpdated();
+            var dynamoClient = serviceProvider.GetService<IDynamoDbClient>();
+            var users = await dynamoClient.GetUsers();
+            foreach (var streamRecord in streamEvent.Records)
+            {
+                if (streamRecord.EventName != OperationType.INSERT)
+                    return;
+
+                var message = Message.UserHasJoinedFromStreamRecord(streamRecord.Dynamodb.NewImage);
                 var apiClient = serviceProvider.GetService<IApiGatewayClient>();
                 foreach (var user in users)
                     await apiClient.PostMessage(user.ConnectionId, message);

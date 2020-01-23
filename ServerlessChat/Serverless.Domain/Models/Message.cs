@@ -38,7 +38,7 @@ namespace Serverless.Domain.Models
             ExpiresOnUtc = DateTime.UtcNow.AddMinutes(15);
         }
 
-        public static Message FromStreamRecord(Dictionary<string, AttributeValue> streamRecord)
+        public static Message NewMessageFromStreamRecord(Dictionary<string, AttributeValue> streamRecord)
         {
             var message = new Message();
             if (streamRecord.TryGetValue(nameof(Content), out var content))
@@ -46,6 +46,15 @@ namespace Serverless.Domain.Models
 
             if (streamRecord.TryGetValue(nameof(AuthorName), out var authorName))
                 message.AuthorName = authorName.S;
+
+            return message;
+        }
+
+        public static Message UserHasJoinedFromStreamRecord(Dictionary<string, AttributeValue> streamRecord)
+        {
+            var message = new Message();
+            if (streamRecord.TryGetValue(nameof(User.UserName), out var userName))
+                message.Content = $"{userName.S} has joined.";
 
             return message;
         }
