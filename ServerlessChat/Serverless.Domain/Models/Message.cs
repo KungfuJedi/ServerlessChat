@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.Model;
+using Amazon.Lambda.DynamoDBEvents;
+using LanguageExt;
 using Serverless.Domain.Constants;
 
 namespace Serverless.Domain.Models
@@ -38,34 +41,55 @@ namespace Serverless.Domain.Models
             ExpiresOnUtc = DateTime.UtcNow.AddMinutes(15);
         }
 
-        public static Message NewMessageFromStreamRecord(Dictionary<string, AttributeValue> streamRecord)
+        public static Option<Message> FromMessageStreamRecord(DynamoDBEvent.DynamodbStreamRecord streamRecord)
         {
-            var message = new Message();
-            if (streamRecord.TryGetValue(nameof(Content), out var content))
-                message.Content = content.S;
+            Message MapNewMessage(Dictionary<string, AttributeValue> attributes)
+            {
+                var message = new Message();
+                if (attributes.TryGetValue(nameof(Content), out var content))
+                    message.Content = content.S;
 
-            if (streamRecord.TryGetValue(nameof(AuthorName), out var authorName))
-                message.AuthorName = authorName.S;
+                if (attributes.TryGetValue(nameof(AuthorName), out var authorName))
+                    message.AuthorName = authorName.S;
 
-            return message;
+                return message;
+            }
+
+            if (streamRecord.EventName == OperationType.INSERT)
+                return MapNewMessage(streamRecord.Dynamodb.NewImage);
+
+            return Option<Message>.None;
         }
 
-        public static Message UserHasJoinedFromStreamRecord(Dictionary<string, AttributeValue> streamRecord)
+        public static Option<Message> FromUserStreamRecord(DynamoDBEvent.DynamodbStreamRecord streamRecord)
         {
-            var message = new Message();
-            if (streamRecord.TryGetValue(nameof(User.UserName), out var userName))
-                message.Content = $"{userName.S} has joined.";
+            Message MapNewUserMessage(Dictionary<string, AttributeValue> attributes)
+            {
+                var message = new Message();
 
-            return message;
-        }
+                if (attributes.TryGetValue(nameof(User.UserName), out var userName))
+                    message.Content = $"{userName.S} has joined.";
 
-        public static Message UserHasLeftFromStreamRecord(Dictionary<string, AttributeValue> streamRecord)
-        {
-            var message = new Message();
-            if (streamRecord.TryGetValue(nameof(User.UserName), out var userName))
-                message.Content = $"{userName.S} has left.";
+                return message;
+            }
 
-            return message;
+            Message MapDeletedUserMessage(Dictionary<string, AttributeValue> attributes)
+            {
+                var message = new Message();
+
+                if (attributes.TryGetValue(nameof(User.UserName), out var userName))
+                    message.Content = $"{userName.S} has left.";
+
+                return message;
+            }
+
+            if (streamRecord.EventName == OperationType.INSERT)
+                return MapNewUserMessage(streamRecord.Dynamodb.NewImage);
+            
+            if (streamRecord.EventName == OperationType.REMOVE)
+                return MapDeletedUserMessage(streamRecord.Dynamodb.OldImage);
+            
+            return Option<Message>.None;
         }
     }
 }

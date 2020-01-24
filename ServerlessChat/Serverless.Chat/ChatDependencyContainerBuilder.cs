@@ -1,8 +1,9 @@
 ﻿using System;
-using Amazon.Lambda.Core;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Serverless.Domain.Authentication;
 using Serverless.Domain.AwsClients;
+using Serverless.Domain.Models;
 
 namespace Serverless.Chat
 {
@@ -66,6 +67,17 @@ namespace Serverless.Chat
             var serviceProvider = new ServiceCollection();
             serviceProvider.AddTransient<IDynamoDbClient, DynamoDbClient>();
             serviceProvider.AddTransient<IApiGatewayClient, ApiGatewayClient>();
+
+            return serviceProvider.BuildServiceProvider();
+        }
+
+        public static IServiceProvider Build()
+        {
+            var serviceProvider = new ServiceCollection();
+            serviceProvider.AddTransient<IDynamoDbClient, DynamoDbClient>();
+            serviceProvider.AddTransient<IApiGatewayClient, ApiGatewayClient>();
+            serviceProvider.AddTransient<IJwtService, JwtService>();
+            serviceProvider.AddMediatR(typeof(User).Assembly);
 
             return serviceProvider.BuildServiceProvider();
         }
