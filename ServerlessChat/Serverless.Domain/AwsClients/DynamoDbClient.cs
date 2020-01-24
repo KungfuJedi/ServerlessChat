@@ -16,6 +16,7 @@ namespace Serverless.Domain.AwsClients
         Task SaveMessage(string userName, string content);
         Task SaveConnectionId(string connectionId, Guid userId);
         Task<IReadOnlyList<User>> GetUsers();
+        Task DeleteUser(Guid userId);
     }
 
     public class DynamoDbClient : IDynamoDbClient
@@ -77,7 +78,14 @@ namespace Serverless.Domain.AwsClients
                 return await context.FromScanAsync<User>(new ScanOperationConfig()).GetRemainingAsync();
         }
 
-        private static DynamoDBContext CreateDynamoDbContext(AmazonDynamoDBClient client)
+        public async Task DeleteUser(Guid userId)
+        {
+            using (var client = new AmazonDynamoDBClient())
+            using (var context = CreateDynamoDbContext(client))
+                await context.DeleteAsync<User>(userId);
+        }
+
+        private static DynamoDBContext CreateDynamoDbContext(IAmazonDynamoDB client)
         {
             return new DynamoDBContext(client, new DynamoDBContextConfig()
             {

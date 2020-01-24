@@ -58,5 +58,14 @@ namespace Serverless.Domain.Models
 
             return message;
         }
+
+        public static Message UserHasLeftFromStreamRecord(Dictionary<string, AttributeValue> streamRecord)
+        {
+            var message = new Message();
+            if (streamRecord.TryGetValue(nameof(User.UserName), out var userName))
+                message.Content = $"{userName.S} has left.";
+
+            return message;
+        }
     }
 }

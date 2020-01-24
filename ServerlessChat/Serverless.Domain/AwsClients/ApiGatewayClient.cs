@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Amazon.ApiGatewayManagementApi;
 using Amazon.ApiGatewayManagementApi.Model;
+using Amazon.Runtime;
 using Newtonsoft.Json;
 using Serverless.Domain.Models;
 
@@ -11,7 +13,7 @@ namespace Serverless.Domain.AwsClients
 {
     public interface IApiGatewayClient
     {
-        Task PostMessage(string connectionId, Message message);
+        Task<bool> PostMessage(string connectionId, Message message);
     }
 
     public class ApiGatewayClient : IApiGatewayClient
@@ -26,7 +28,7 @@ namespace Serverless.Domain.AwsClients
             });
         }
 
-        public async Task PostMessage(string connectionId, Message message)
+        public async Task<bool> PostMessage(string connectionId, Message message)
         {
             try
             {
@@ -36,11 +38,13 @@ namespace Serverless.Domain.AwsClients
                     Data = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)))
                 });
             }
-            catch (Exception)
+            catch (AmazonServiceException e)
             {
-                // TODO - handle bad connections
-                return;
+                if (e.StatusCode == HttpStatusCode.Gone)
+                    return false;
             }
+         
+            return true;
         }
     }
 }

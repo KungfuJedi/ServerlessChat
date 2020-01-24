@@ -8,13 +8,13 @@ import { MessagesService } from 'src/app/services/messages.service';
   styleUrls: ['./messages-window.component.scss']
 })
 export class MessagesWindowComponent implements OnInit {
-  messages: Message[];
+  messages: Message[] = [];
 
   constructor(private messagesService: MessagesService) { }
 
   ngOnInit() {
     this.messagesService.getMessages()
-      .subscribe(res => this.messages = res.Messages);
+      .subscribe(res => res.Messages.forEach(message => this.messagesService.onNewMessage(message)));
 
     this.messagesService.newMessages$().subscribe(message => this.messages.push(message));
   }

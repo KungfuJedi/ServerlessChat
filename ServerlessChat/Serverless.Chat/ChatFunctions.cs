@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Amazon.ApiGatewayManagementApi;
 using Amazon.DynamoDBv2;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
@@ -134,8 +133,12 @@ namespace Serverless.Chat
 
                 var message = Message.NewMessageFromStreamRecord(streamRecord.Dynamodb.NewImage);
                 var apiClient = serviceProvider.GetService<IApiGatewayClient>();
-                foreach (var user in users)
-                    await apiClient.PostMessage(user.ConnectionId, message);
+                foreach (var user in users.ToList())
+                {
+                    if (!await apiClient.PostMessage(user.ConnectionId, message))
+                        await dynamoClient.DeleteUser(user.Id);
+                }
+                    
             }
         }
 
@@ -146,13 +149,20 @@ namespace Serverless.Chat
             var users = await dynamoClient.GetUsers();
             foreach (var streamRecord in streamEvent.Records)
             {
-                if (streamRecord.EventName != OperationType.INSERT)
+                Message message;
+                if (streamRecord.EventName == OperationType.INSERT)
+                    message = Message.UserHasJoinedFromStreamRecord(streamRecord.Dynamodb.NewImage);
+                else if (streamRecord.EventName == OperationType.REMOVE)
+                    message = Message.UserHasLeftFromStreamRecord(streamRecord.Dynamodb.OldImage);
+                else
                     return;
 
-                var message = Message.UserHasJoinedFromStreamRecord(streamRecord.Dynamodb.NewImage);
                 var apiClient = serviceProvider.GetService<IApiGatewayClient>();
-                foreach (var user in users)
-                    await apiClient.PostMessage(user.ConnectionId, message);
+                foreach (var user in users.ToList())
+                {
+                    if (!await apiClient.PostMessage(user.ConnectionId, message))
+                        await dynamoClient.DeleteUser(user.Id);
+                }
             }
         }
     }
