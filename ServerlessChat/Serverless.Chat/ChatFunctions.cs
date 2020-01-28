@@ -43,28 +43,6 @@ namespace Serverless.Chat
                 })).ApiResponse;
         }
 
-        public async Task<APIGatewayCustomAuthorizerResponse> Authorize(APIGatewayCustomAuthorizerRequest request)
-        {
-            var token = request.AuthorizationToken;
-            if (string.IsNullOrEmpty(token))
-                throw new UnauthorizedAccessException();
-
-            var serviceProvider = ChatDependencyContainerBuilder.ForAuthorizer();
-            var jwtService = serviceProvider.GetService<IJwtService>();
-            var userId = jwtService.VerifyJwt(token);
-
-            if (!userId.HasValue)
-                throw new UnauthorizedAccessException();
-
-            var dynamoClient = serviceProvider.GetService<IDynamoDbClient>();
-            if (!await dynamoClient.CheckUserExists(userId.Value))
-                throw new UnauthorizedAccessException();
-
-            return new APIGatewayCustomAuthorizerResponse()
-                .WithPrincipal(userId.ToString())
-                .WithPolicyAllowingArn(request.MethodArn);
-        }
-
         public async Task<APIGatewayProxyResponse> SendMessage(APIGatewayProxyRequest request)
         {
             return (await _serviceProvider.GetService<IMediator>()

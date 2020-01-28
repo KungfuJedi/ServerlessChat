@@ -103,6 +103,7 @@ Resources:
           - Effect: Allow
             Action:
               - lambda:CreateFunction
+              - lambda:DeleteFunction
               - lambda:AddPermission
               - lambda:ListVersionsByFunction
               - lambda:GetFunction
@@ -111,6 +112,9 @@ Resources:
               - lambda:PublishVersion
               - lambda:RemovePermission
               - lambda:UpdateFunctionCode
+              - lambda:ListTags
+              - lambda:TagResource
+              - lambda:UntagResource
             Resource:
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-GetRecentMessages
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-SignIn
@@ -130,6 +134,7 @@ Resources:
               - logs:CreateLogGroup
               - logs:DeleteLogGroup
               - logs:PutRetentionPolicy
+              - logs:DeleteLogStream
             Resource:
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-GetRecentMessages:*
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-SignIn:*

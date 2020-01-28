@@ -20,6 +20,13 @@ namespace Serverless.Domain.Commands
     {
         public APIGatewayProxyResponse ApiResponse { get; private set; }
 
+        public static SendMessageCommandResponse Unauthorized() => new SendMessageCommandResponse
+        {
+            ApiResponse = new APIGatewayProxyResponse()
+                .WithStatus(HttpStatusCode.Unauthorized)
+                .WithCorsHeaders()
+        };
+
         public static SendMessageCommandResponse BadRequest() => new SendMessageCommandResponse
         {
             ApiResponse = new APIGatewayProxyResponse()
@@ -48,11 +55,15 @@ namespace Serverless.Domain.Commands
 
         public async Task<SendMessageCommandResponse> Handle(SendMessageCommand command, CancellationToken cancellationToken)
         {
-            var sendMessageRequest = JsonConvert.DeserializeObject<SendMessageRequest>(command.Request.Body);
-            if (sendMessageRequest == null || string.IsNullOrEmpty(sendMessageRequest.Content))
+            if (!command.Request.Headers.TryGetValue(Headers.Authorization, out var authToken))
                 return SendMessageCommandResponse.BadRequest();
 
-            if (!command.Request.Headers.TryGetValue(Headers.Authorization, out var authToken))
+            var userId = _jwtService.VerifyJwt(authToken);
+            if (!userId.HasValue || !await _dynamoDbClient.CheckUserExists(userId.Value))
+                return SendMessageCommandResponse.Unauthorized();
+
+            var sendMessageRequest = JsonConvert.DeserializeObject<SendMessageRequest>(command.Request.Body);
+            if (sendMessageRequest == null || string.IsNullOrEmpty(sendMessageRequest.Content))
                 return SendMessageCommandResponse.BadRequest();
 
             var userName = _jwtService.GetClaim(authToken, Claims.UserName);
