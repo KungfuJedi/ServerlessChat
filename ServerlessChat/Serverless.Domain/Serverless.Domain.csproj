@@ -7,10 +7,10 @@
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="1.3.0" />
     <PackageReference Include="Amazon.Lambda.DynamoDBEvents" Version="1.1.0" />
-    <PackageReference Include="AWSSDK.ApiGatewayManagementApi" Version="3.3.101.59" />
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.104.22" />
+    <PackageReference Include="AWSSDK.ApiGatewayManagementApi" Version="3.3.101.60" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.104.23" />
     <PackageReference Include="JWT" Version="5.3.1" />
-    <PackageReference Include="LanguageExt.Core" Version="3.3.49" />
+    <PackageReference Include="LanguageExt.Core" Version="3.3.50" />
     <PackageReference Include="MediatR" Version="8.0.0" />
     <PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Text.Encoding.Extensions" Version="4.3.0" />

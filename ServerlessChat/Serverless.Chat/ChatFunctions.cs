@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.DynamoDBEvents;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Serverless.Chat.Extensions;
-using Serverless.Chat.Requests;
 using Serverless.Domain.Authentication;
 using Serverless.Domain.AwsClients;
 using Serverless.Domain.Commands;
@@ -22,26 +21,26 @@ namespace Serverless.Chat
 {
     public class ChatFunctions
     {
+        private readonly IServiceProvider _serviceProvider;
+
+        public ChatFunctions()
+        {
+            AWSSDKHandler.RegisterXRayForAllServices();
+            _serviceProvider = ChatDependencyContainerBuilder.Build();
+        }
+
         public async Task<APIGatewayProxyResponse> GetRecentMessages(APIGatewayProxyRequest request)
         {
-            var serviceProvider = ChatDependencyContainerBuilder.ForRecentMessages();
-            var dynamoClient = serviceProvider.GetService<IDynamoDbClient>();
-            var messages = await dynamoClient.GetRecentMessages();
-
-            return new APIGatewayProxyResponse()
-                .WithStatus(HttpStatusCode.OK)
-                .WithBody(JsonConvert.SerializeObject(new {Messages = messages}))
-                .WithCorsHeaders();
+            return (await _serviceProvider.GetService<IMediator>().Send(new GetRecentMessagesQuery())).ApiResponse;
         }
 
         public async Task<APIGatewayProxyResponse> SignIn(APIGatewayProxyRequest request)
         {
-            var serviceProvider = ChatDependencyContainerBuilder.Build();
-            var mediator = serviceProvider.GetService<IMediator>();
-            return (await mediator.Send(new SignInCommand
-            {
-                RequestBody = request.Body
-            })).ApiResponse;
+            return (await _serviceProvider.GetService<IMediator>()
+                .Send(new SignInCommand
+                {
+                    Request = request
+                })).ApiResponse;
         }
 
         public async Task<APIGatewayCustomAuthorizerResponse> Authorize(APIGatewayCustomAuthorizerRequest request)
@@ -68,26 +67,17 @@ namespace Serverless.Chat
 
         public async Task<APIGatewayProxyResponse> SendMessage(APIGatewayProxyRequest request)
         {
-            var sendMessageRequest = JsonConvert.DeserializeObject<SendMessageRequest>(request.Body);
-            if (sendMessageRequest == null || string.IsNullOrEmpty(sendMessageRequest.Content))
-                return new APIGatewayProxyResponse()
-                    .WithStatus(HttpStatusCode.BadRequest)
-                    .WithCorsHeaders();
-
-            var serviceProvider = ChatDependencyContainerBuilder.ForSendMessage();
-            var jwtService = serviceProvider.GetService<IJwtService>();
-            var userName = jwtService.GetClaim(request.Headers["Authorization"], Claims.UserName);
-            var dynamoClient = serviceProvider.GetService<IDynamoDbClient>();
-            await dynamoClient.SaveMessage(userName, sendMessageRequest.Content);
-
-            return new APIGatewayProxyResponse()
-                .WithStatus(HttpStatusCode.OK)
-                .WithCorsHeaders();
+            return (await _serviceProvider.GetService<IMediator>()
+                    .Send(new SendMessageCommand
+                    {
+                        Request = request
+                    }))
+                .ApiResponse;
         }
 
         public async Task<APIGatewayProxyResponse> Connect(APIGatewayProxyRequest request)
         {
-            if (!request.MultiValueHeaders.TryGetValue("Sec-WebSocket-Protocol", out var token))
+            if (!request.MultiValueHeaders.TryGetValue(Headers.SecurityWebsocketProtocol, out var token))
                 return new APIGatewayProxyResponse()
                     .WithStatus(HttpStatusCode.Unauthorized);
 
@@ -110,24 +100,22 @@ namespace Serverless.Chat
 
         public async Task MessageUpdated(DynamoDBEvent streamEvent)
         {
-            var serviceProvider = ChatDependencyContainerBuilder.Build();
-            var mediator = serviceProvider.GetService<IMediator>();
-            await mediator.Send(new SendWebSocketMessagesCommand
-            {
-                DynamoEvent = streamEvent,
-                EventDataMapper = Message.FromMessageStreamRecord
-            });
+            await _serviceProvider.GetService<IMediator>()
+                .Send(new SendWebSocketMessagesCommand
+                {
+                    DynamoEvent = streamEvent,
+                    EventDataMapper = Message.FromMessageStreamRecord
+                });
         }
 
         public async Task UserUpdated(DynamoDBEvent streamEvent)
         {
-            var serviceProvider = ChatDependencyContainerBuilder.Build();
-            var mediator = serviceProvider.GetService<IMediator>();
-            await mediator.Send(new SendWebSocketMessagesCommand
-            {
-                DynamoEvent = streamEvent,
-                EventDataMapper = Message.FromUserStreamRecord
-            });
+            await _serviceProvider.GetService<IMediator>()
+                .Send(new SendWebSocketMessagesCommand
+                {
+                    DynamoEvent = streamEvent,
+                    EventDataMapper = Message.FromUserStreamRecord
+                });
         }
     }
 }

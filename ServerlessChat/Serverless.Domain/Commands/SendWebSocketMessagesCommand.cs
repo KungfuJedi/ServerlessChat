@@ -33,10 +33,6 @@ namespace Serverless.Domain.Commands
         {
             var users = await _dynamoDbClient.GetUsers();
             foreach (var streamRecord in command.DynamoEvent.Records)
-            {
-                if (streamRecord.EventName != OperationType.INSERT)
-                    return Unit.Value;
-
                 await command.EventDataMapper(streamRecord)
                     .MatchAsync(async message =>
                         {
@@ -47,7 +43,6 @@ namespace Serverless.Domain.Commands
                             return LanguageExt.Unit.Default;
                         },
                         () => Task.FromResult(LanguageExt.Unit.Default));
-            }
 
             return Unit.Value;
         }
