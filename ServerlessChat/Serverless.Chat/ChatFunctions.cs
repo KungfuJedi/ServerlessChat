@@ -55,25 +55,12 @@ namespace Serverless.Chat
 
         public async Task<APIGatewayProxyResponse> Connect(APIGatewayProxyRequest request)
         {
-            if (!request.MultiValueHeaders.TryGetValue(Headers.SecurityWebsocketProtocol, out var token))
-                return new APIGatewayProxyResponse()
-                    .WithStatus(HttpStatusCode.Unauthorized);
-
-            var serviceProvider = ChatDependencyContainerBuilder.ForConnect();
-
-            var connectionId = request.RequestContext.ConnectionId;
-
-            var jwtService = serviceProvider.GetService<IJwtService>();
-            var userId = jwtService.VerifyJwt(token.First());
-            if (!userId.HasValue)
-                return new APIGatewayProxyResponse()
-                    .WithStatus(HttpStatusCode.Unauthorized);
-
-            var dynamoClient = serviceProvider.GetService<IDynamoDbClient>();
-            await dynamoClient.SaveConnectionId(connectionId, userId.Value);
-
-            return new APIGatewayProxyResponse()
-                .WithStatus(HttpStatusCode.OK);
+            return (await _serviceProvider.GetService<IMediator>()
+                    .Send(new ConnectCommand
+                    {
+                        Request = request
+                    }))
+                .ApiResponse;
         }
 
         public async Task MessageUpdated(DynamoDBEvent streamEvent)

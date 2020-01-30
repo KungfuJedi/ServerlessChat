@@ -9,15 +9,6 @@ namespace Serverless.Chat
 {
     public static class ChatDependencyContainerBuilder
     {
-        public static IServiceProvider ForConnect()
-        {
-            var serviceProvider = new ServiceCollection();
-            serviceProvider.AddTransient<IDynamoDbClient, DynamoDbClient>();
-            serviceProvider.AddTransient<IJwtService, JwtService>();
-
-            return serviceProvider.BuildServiceProvider();
-        }
-
         public static IServiceProvider Build()
         {
             var serviceProvider = new ServiceCollection();
