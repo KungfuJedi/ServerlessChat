@@ -78,11 +78,21 @@ functions:
     role: UserUpdatedRole
     environment:
       ws_id: !Ref WebsocketsApi
+      updateUserConnectionList_queue_url: !Ref UserConnectionListUpdateQueue
     events:
       - stream:
           type: dynamodb
           arn:
             Fn::GetAtt: [UsersTable, StreamArn]
+
+  updateUserConnectionListFunction:
+    name: ${opt:stage}-ServerlessChat-UpdateUserConnectionList
+    handler: Serverless.Chat::Serverless.Chat.ChatFunctions::UpdateUserConnectionList
+    role: UpdateUserConnectionListRole
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [UserConnectionListUpdateQueue, Arn]
 
 resources:
   Resources:
@@ -289,7 +299,6 @@ resources:
               Statement:
                 - Effect: Allow
                   Action:
-                    - dynamodb:Scan
                     - dynamodb:DescribeTable
                     - dynamodb:DeleteItem
                   Resource:
@@ -300,6 +309,18 @@ resources:
                         - Ref: AWS::Region
                         - Ref: AWS::AccountId
                         - table/${opt:stage}-ServerlessChat-Users
+                - Effect: Allow
+                  Action:
+                    - dynamodb:DescribeTable
+                    - dynamodb:GetItem
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      - 
+                        - arn:aws:dynamodb
+                        - Ref: AWS::Region
+                        - Ref: AWS::AccountId
+                        - table/${opt:stage}-ServerlessChat-UserConnectionMappings
                 - Effect: Allow
                   Action:
                     - dynamodb:DescribeStream
@@ -351,7 +372,6 @@ resources:
               Statement:
                 - Effect: Allow
                   Action:
-                    - dynamodb:Scan
                     - dynamodb:DescribeTable
                     - dynamodb:DeleteItem
                   Resource:
@@ -362,6 +382,18 @@ resources:
                         - Ref: AWS::Region
                         - Ref: AWS::AccountId
                         - table/${opt:stage}-ServerlessChat-Users
+                - Effect: Allow
+                  Action:
+                    - dynamodb:DescribeTable
+                    - dynamodb:GetItem
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      - 
+                        - arn:aws:dynamodb
+                        - Ref: AWS::Region
+                        - Ref: AWS::AccountId
+                        - table/${opt:stage}-ServerlessChat-UserConnectionMappings
                 - Effect: Allow
                   Action:
                     - dynamodb:DescribeStream
@@ -393,6 +425,61 @@ resources:
                     - execute-api:ManageConnections
                   Resource:
                     - '*'
+                - Effect: Allow
+                  Action:
+                    - sqs:SendMessage
+                  Resource:
+                    - Fn::GetAtt: [UserConnectionListUpdateQueue, Arn]
+
+    UpdateUserConnectionListRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${opt:stage}-ServerlessChat-UpdateUserConnectionList
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: ${opt:stage}-ServerlessChat-UpdateUserConnectionList
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:DescribeTable
+                    - dynamodb:GetItem
+                    - dynamodb:UpdateItem
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      - 
+                        - arn:aws:dynamodb
+                        - Ref: AWS::Region
+                        - Ref: AWS::AccountId
+                        - table/${opt:stage}-ServerlessChat-UserConnectionMappings
+                - Effect: Allow
+                  Action:
+                    - xray:PutTraceSegments
+                    - xray:PutTelemetryRecords
+                  Resource: '*'
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-UpdateUserConnectionList
+                    - arn:aws:logs:*:*:log-group:/aws/lambda/${opt:stage}-ServerlessChat-UpdateUserConnectionList:log-stream:*
+                - Effect: Allow
+                  Action:
+                    - sqs:DeleteMessage
+                    - sqs:GetQueueAttributes
+                    - sqs:ReceiveMessage
+                  Resource:
+                    - Fn::GetAtt: [UserConnectionListUpdateQueue, Arn]
 
     MessagesTable:
       Type: AWS::DynamoDB::Table
@@ -424,3 +511,22 @@ resources:
             KeyType: HASH
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES
+
+    UserConnectionMappingsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${opt:stage}-ServerlessChat-UserConnectionMappings
+        AttributeDefinitions:
+          - AttributeName: Id
+            AttributeType: N
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: Id
+            KeyType: HASH
+
+    UserConnectionListUpdateQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${opt:stage}-ServerlessChat-UserConnectionListUpdates.fifo
+        FifoQueue: true
+        ContentBasedDeduplication: true

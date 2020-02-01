@@ -13,8 +13,7 @@ namespace Serverless.Domain.Models
     public class Message
     {
         [DynamoDBHashKey]
-        [DynamoDBProperty(AttributeName = "MessageId")]
-        public Guid Id { get; set; }
+        public Guid MessageId { get; set; }
 
         [DynamoDBProperty(storeAsEpoch:true)]
         public DateTime ExpiresOnUtc { get; set; }
@@ -35,7 +34,7 @@ namespace Serverless.Domain.Models
 
         public Message(string content, string authorName)
         {
-            Id = Guid.NewGuid();
+            MessageId = Guid.NewGuid();
             Content = content;
             AuthorName = authorName;
             ExpiresOnUtc = DateTime.UtcNow.AddMinutes(15);

@@ -22,7 +22,7 @@ namespace Serverless.Domain.Authentication
         {
             var payload = new Dictionary<string, object>
             {
-                { Claims.UserId, user.Id },
+                { Claims.UserId, user.UserId },
                 { Claims.UserName, user.UserName }
             };
 

@@ -8,8 +8,7 @@ namespace Serverless.Domain.Models
     public class User
     {
         [DynamoDBHashKey]
-        [DynamoDBProperty(AttributeName = "UserId")]
-        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
 
         [DynamoDBProperty]
         public string UserName { get; set; }
@@ -24,7 +23,7 @@ namespace Serverless.Domain.Models
 
         public User(string userName)
         {
-            Id = Guid.NewGuid();
+            UserId = Guid.NewGuid();
             UserName = userName;
         }
     }

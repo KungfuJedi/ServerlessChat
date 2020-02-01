@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.DynamoDBEvents;
+using Amazon.Lambda.SQSEvents;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using Serverless.Chat.Extensions;
-using Serverless.Domain.Authentication;
-using Serverless.Domain.AwsClients;
 using Serverless.Domain.Commands;
 using Serverless.Domain.Models;
 using JsonSerializer = Amazon.Lambda.Serialization.Json.JsonSerializer;
@@ -75,12 +71,27 @@ namespace Serverless.Chat
 
         public async Task UserUpdated(DynamoDBEvent streamEvent)
         {
-            await _serviceProvider.GetService<IMediator>()
-                .Send(new SendWebSocketMessagesCommand
+            var mediator = _serviceProvider.GetService<IMediator>();
+            await Task.WhenAll(
+                mediator.Send(new SendUpdateUserConnectionListMessageCommand
+                {
+                    DynamoEvent = streamEvent
+                }),
+                mediator.Send(new SendWebSocketMessagesCommand
                 {
                     DynamoEvent = streamEvent,
                     EventDataMapper = Message.FromUserStreamRecord
-                });
+                })
+            );
+        }
+
+        public async Task UpdateUserConnectionList(SQSEvent sqsEvent)
+        {
+            var mediator = _serviceProvider.GetService<IMediator>();
+            await mediator.Send(new UpdateUserConnectionMappingsCommand
+            {
+                SqsEvent = sqsEvent
+            });
         }
     }
 }

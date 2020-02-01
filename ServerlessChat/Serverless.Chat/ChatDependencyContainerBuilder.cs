@@ -14,6 +14,7 @@ namespace Serverless.Chat
             var serviceProvider = new ServiceCollection();
             serviceProvider.AddTransient<IDynamoDbClient, DynamoDbClient>();
             serviceProvider.AddTransient<IApiGatewayClient, ApiGatewayClient>();
+            serviceProvider.AddTransient<ISqsClient, SqsClient>();
             serviceProvider.AddTransient<IJwtService, JwtService>();
             serviceProvider.AddMediatR(typeof(SendMessageCommand).Assembly);
 

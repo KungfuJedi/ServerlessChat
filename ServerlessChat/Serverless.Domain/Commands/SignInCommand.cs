@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Serverless.Chat.Extensions;
 using Serverless.Domain.Authentication;
 using Serverless.Domain.AwsClients;
+using Serverless.Domain.Models;
 using Serverless.Domain.Requests;
 
 namespace Serverless.Domain.Commands
@@ -56,7 +57,8 @@ namespace Serverless.Domain.Commands
             if (signInRequest == null)
                 return SignInCommandResponse.BadRequest();
 
-            var user = await _dynamoDbClient.SignIn(signInRequest.UserName);
+            var user = new User(signInRequest.UserName);
+            await _dynamoDbClient.SaveUser(user);
             return SignInCommandResponse.Ok(_jwtService.GenerateJwt(user));
         }
     }

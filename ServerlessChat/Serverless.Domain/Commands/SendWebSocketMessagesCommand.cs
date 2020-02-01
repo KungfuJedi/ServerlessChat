@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon.DynamoDBv2;
 using Amazon.Lambda.DynamoDBEvents;
 using LanguageExt;
 using MediatR;
@@ -31,14 +30,14 @@ namespace Serverless.Domain.Commands
 
         public async Task<Unit> Handle(SendWebSocketMessagesCommand command, CancellationToken cancellationToken)
         {
-            var users = await _dynamoDbClient.GetUsers();
+            var mappings = (await _dynamoDbClient.GetUserConnectionMappings()).GetUserConnectionMappings();
             foreach (var streamRecord in command.DynamoEvent.Records)
                 await command.EventDataMapper(streamRecord)
                     .MatchAsync(async message =>
                         {
-                            foreach (var user in users.ToList())
-                                if (!await _apiGatewayClient.PostMessage(user.ConnectionId, message))
-                                    await _dynamoDbClient.DeleteUser(user.Id);
+                            foreach (var mapping in mappings.ToList())
+                                if (!await _apiGatewayClient.PostMessage(mapping.ConnectionId, message))
+                                    await _dynamoDbClient.DeleteUser(mapping.UserId);
 
                             return LanguageExt.Unit.Default;
                         },

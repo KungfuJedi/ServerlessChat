@@ -65,6 +65,7 @@ Resources:
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-Connect
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-MessageUpdated
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-UserUpdated
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-UpdateUserConnectionList
           - Effect: Allow
             Action:
               - cloudformation:DescribeStackResource
@@ -91,6 +92,7 @@ Resources:
             Resource:
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Environment}-ServerlessChat-Messages
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Environment}-ServerlessChat-Users
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Environment}-ServerlessChat-UserConnectionMappings
           - Effect: Allow
             Action:
               - apigateway:DELETE
@@ -115,6 +117,7 @@ Resources:
               - lambda:ListTags
               - lambda:TagResource
               - lambda:UntagResource
+              - lambda:UpdateFunctionConfiguration 
             Resource:
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-GetRecentMessages
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-SignIn
@@ -123,6 +126,7 @@ Resources:
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-Connect
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-MessageUpdated
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-UserUpdated
+              - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-UpdateUserConnectionList
           - Effect: Allow
             Action:
               - lambda:CreateEventSourceMapping
@@ -143,10 +147,19 @@ Resources:
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-Connect:*
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-MessageUpdated:*
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-UserUpdated:*
+              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-UpdateUserConnectionList:*
           - Effect: Allow
             Action:
               - logs:DescribeLogGroups
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - sqs:CreateQueue
+              - sqs:DeleteQueue
+              - sqs:SetQueueAttributes
+              - sqs:GetQueueAttributes
+            Resource:
+              - !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${Environment}-ServerlessChat-UserConnectionListUpdates.fifo
 
   AngularBucket:
     Type: AWS::S3::Bucket
