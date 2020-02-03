@@ -13,9 +13,6 @@ export class MessagesWindowComponent implements OnInit {
   constructor(private messagesService: MessagesService) { }
 
   ngOnInit() {
-    this.messagesService.getMessages()
-      .subscribe(res => res.Messages.forEach(message => this.messagesService.onNewMessage(message)));
-
     this.messagesService.newMessages$().subscribe(message => this.messages.push(message));
   }
 }

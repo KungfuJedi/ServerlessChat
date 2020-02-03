@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using Amazon.Lambda.APIGatewayEvents;
+using Newtonsoft.Json;
 
-namespace Serverless.Chat.Extensions
+namespace Serverless.Domain.Extensions
 {
     public static class APIGatewayProxyResponseExtensions
     {
@@ -12,9 +13,15 @@ namespace Serverless.Chat.Extensions
             return response;
         }
 
-        public static APIGatewayProxyResponse WithBody(this APIGatewayProxyResponse response, string body)
+        public static APIGatewayProxyResponse WithJsonBody<T>(this APIGatewayProxyResponse response, T bodyObject)
         {
-            response.Body = body;
+            response.Body = JsonConvert.SerializeObject(bodyObject);
+            return response;
+        }
+
+        public static APIGatewayProxyResponse WithEmptyJsonBody(this APIGatewayProxyResponse response)
+        {
+            response.Body = JsonConvert.SerializeObject(new object());
             return response;
         }
 

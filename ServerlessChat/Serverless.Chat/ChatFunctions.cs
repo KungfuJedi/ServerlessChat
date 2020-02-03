@@ -25,11 +25,6 @@ namespace Serverless.Chat
             _serviceProvider = ChatDependencyContainerBuilder.Build();
         }
 
-        public async Task<APIGatewayProxyResponse> GetRecentMessages(APIGatewayProxyRequest request)
-        {
-            return (await _serviceProvider.GetService<IMediator>().Send(new GetRecentMessagesQuery())).ApiResponse;
-        }
-
         public async Task<APIGatewayProxyResponse> SignIn(APIGatewayProxyRequest request)
         {
             return (await _serviceProvider.GetService<IMediator>()
@@ -49,10 +44,10 @@ namespace Serverless.Chat
                 .ApiResponse;
         }
 
-        public async Task<APIGatewayProxyResponse> Connect(APIGatewayProxyRequest request)
+        public async Task<APIGatewayProxyResponse> RegisterConnection(APIGatewayProxyRequest request)
         {
             return (await _serviceProvider.GetService<IMediator>()
-                    .Send(new ConnectCommand
+                    .Send(new RegisterConnectionCommand
                     {
                         Request = request
                     }))

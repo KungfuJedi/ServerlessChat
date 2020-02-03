@@ -66,6 +66,7 @@ Resources:
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-MessageUpdated
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-UserUpdated
               - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-UpdateUserConnectionList
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/${Environment}-ServerlessChat-RegisterConnection
           - Effect: Allow
             Action:
               - cloudformation:DescribeStackResource
@@ -127,6 +128,7 @@ Resources:
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-MessageUpdated
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-UserUpdated
               - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-UpdateUserConnectionList
+              - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-ServerlessChat-RegisterConnection
           - Effect: Allow
             Action:
               - lambda:CreateEventSourceMapping
@@ -148,6 +150,7 @@ Resources:
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-MessageUpdated:*
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-UserUpdated:*
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-UpdateUserConnectionList:*
+              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-ServerlessChat-RegisterConnection:*
           - Effect: Allow
             Action:
               - logs:DescribeLogGroups

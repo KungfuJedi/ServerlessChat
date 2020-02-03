@@ -13,10 +13,6 @@ export class MessagesService {
 
   constructor(private http: HttpClient, private appStateService: AppStateService) { }
 
-  getMessages(): Observable<GetMessagesResponse> {
-    return this.http.get<GetMessagesResponse>(`${environment.baseUrl}/messages`);
-  }
-
   sendMessage(content: string): Observable<HttpResponseBase> {
     return this.http.post<HttpResponseBase>(`${environment.baseUrl}/message`, {Content: content},
       {headers: new HttpHeaders().set('Authorization', this.appStateService.authToken)});

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
@@ -10,7 +9,6 @@ namespace Serverless.Domain.AwsClients
 {
     public interface IDynamoDbClient
     {
-        Task<IReadOnlyList<Message>> GetRecentMessages();
         Task SaveUser(User user);
         Task<bool> CheckUserExists(Guid userId);
         Task SaveMessage(string userName, string content);
@@ -22,17 +20,6 @@ namespace Serverless.Domain.AwsClients
 
     public class DynamoDbClient : IDynamoDbClient
     {
-        public async Task<IReadOnlyList<Message>> GetRecentMessages()
-        {
-            using (var client = new AmazonDynamoDBClient())
-            using (var context = CreateDynamoDbContext(client))
-            {
-                return await context
-                    .ScanAsync<Message>(new List<ScanCondition>())
-                    .GetRemainingAsync();
-            }
-        }
-
         public async Task SaveUser(User user)
         {
             await SaveAsync(user);

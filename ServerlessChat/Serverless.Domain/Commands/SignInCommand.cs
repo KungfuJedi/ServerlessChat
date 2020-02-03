@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Amazon.Lambda.APIGatewayEvents;
 using MediatR;
 using Newtonsoft.Json;
-using Serverless.Chat.Extensions;
 using Serverless.Domain.Authentication;
 using Serverless.Domain.AwsClients;
+using Serverless.Domain.Extensions;
 using Serverless.Domain.Models;
 using Serverless.Domain.Requests;
 
@@ -32,10 +32,10 @@ namespace Serverless.Domain.Commands
         {
             ApiResponse = new APIGatewayProxyResponse()
                 .WithStatus(HttpStatusCode.OK)
-                .WithBody(JsonConvert.SerializeObject(new
+                .WithJsonBody(new
                 {
                     AuthToken = authToken
-                }))
+                })
                 .WithCorsHeaders()
         };
     }

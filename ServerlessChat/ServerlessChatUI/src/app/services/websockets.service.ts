@@ -12,7 +12,15 @@ export class WebsocketsService {
   constructor(private appStateService: AppStateService, private messageServices: MessagesService) { }
 
   connect() {
-    this.socket = new WebSocket(environment.websocketUrl, [this.appStateService.authToken]);
+    this.socket = new WebSocket(environment.websocketUrl);
+
+    this.socket.onopen = () => {
+      this.socket.send(JSON.stringify({
+        action: 'register',
+        authToken: this.appStateService.authToken
+      }));
+    }
+
     this.socket.onmessage = (message) => {
       const newMessage = JSON.parse(message.data);
       this.messageServices.onNewMessage(newMessage);
