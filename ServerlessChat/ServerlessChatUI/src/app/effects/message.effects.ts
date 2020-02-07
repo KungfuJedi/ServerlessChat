@@ -14,7 +14,7 @@ export class MessageEffects {
             ofType(sendMessage),
             map(event => {
                 this.websocketsService.sendMessage(event.content);
-                return messageSent;
+                return messageSent();
             })
         ))
 }
