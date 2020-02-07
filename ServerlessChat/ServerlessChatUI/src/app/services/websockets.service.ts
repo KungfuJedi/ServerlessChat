@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { AppStateService } from './app-state.service';
-import { MessagesService } from './messages.service';
+import { Store } from '@ngrx/store';
+import { MessageState } from '../models/message.state';
+import { messageReceived } from '../actions/message.actions';
 
 @Injectable({
   providedIn: 'root'
@@ -9,21 +11,32 @@ import { MessagesService } from './messages.service';
 export class WebsocketsService {
   private socket: WebSocket;
 
-  constructor(private appStateService: AppStateService, private messageServices: MessagesService) { }
+  private readonly registerAction = 'register';
+  private readonly sendMessageAction = 'sendMessage';
+
+  constructor(private appStateService: AppStateService, private store: Store<MessageState>) { }
 
   connect() {
     this.socket = new WebSocket(environment.websocketUrl);
 
     this.socket.onopen = () => {
       this.socket.send(JSON.stringify({
-        action: 'register',
+        action: this.registerAction,
         authToken: this.appStateService.authToken
       }));
     }
 
     this.socket.onmessage = (message) => {
       const newMessage = JSON.parse(message.data);
-      this.messageServices.onNewMessage(newMessage);
+      this.store.dispatch(messageReceived({message: newMessage}));
     };
+  }
+
+  public sendMessage(content: string) {
+    this.socket.send(JSON.stringify({
+      action: this.sendMessageAction,
+      authToken: this.appStateService.authToken,
+      content
+    }));
   }
 }

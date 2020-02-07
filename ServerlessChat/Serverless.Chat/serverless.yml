@@ -36,11 +36,7 @@ functions:
     handler: Serverless.Chat::Serverless.Chat.ChatFunctions::SendMessage
     role: SendMessageRole
     events:
-      - http:
-          path: message
-          method: post
-          cors:
-            origin: '*'
+      - websocket: sendMessage
 
   registerConnectionFunction:
     name: ${opt:stage}-ServerlessChat-RegisterConnection

@@ -14,6 +14,12 @@ import { MessageComponent } from './components/message/message.component';
 import { SignInComponent } from './components/sign-in/sign-in.component';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { StoreModule } from '@ngrx/store';
+import * as fromMessages from './reducers/message.reducer';
+import { environment } from 'src/environments/environment';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { EffectsModule } from '@ngrx/effects';
+import { MessageEffects } from './effects/message.effects';
 
 @NgModule({
   declarations: [
@@ -32,7 +38,15 @@ import { HttpClientModule } from '@angular/common/http';
     MatDividerModule,
     MatButtonModule,
     FormsModule,
-    HttpClientModule
+    HttpClientModule,
+    StoreModule.forRoot({ messages: fromMessages.reducer }),
+    StoreDevtoolsModule.instrument(
+      environment.production
+      ? {}
+      : {
+        maxAge: 25
+        }),
+    EffectsModule.forRoot([MessageEffects])
   ],
   providers: [],
   bootstrap: [AppComponent]

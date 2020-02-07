@@ -24,21 +24,21 @@ namespace Serverless.Domain.Commands
         {
             ApiResponse = new APIGatewayProxyResponse()
                 .WithStatus(HttpStatusCode.Unauthorized)
-                .WithCorsHeaders()
+                .WithEmptyJsonBody()
         };
 
         public static SendMessageCommandResponse BadRequest() => new SendMessageCommandResponse
         {
             ApiResponse = new APIGatewayProxyResponse()
                 .WithStatus(HttpStatusCode.BadRequest)
-                .WithCorsHeaders()
+                .WithEmptyJsonBody()
         };
 
         public static SendMessageCommandResponse Ok() => new SendMessageCommandResponse
         {
             ApiResponse = new APIGatewayProxyResponse()
                 .WithStatus(HttpStatusCode.OK)
-                .WithCorsHeaders()
+                .WithEmptyJsonBody()
         };
     }
 
@@ -55,18 +55,18 @@ namespace Serverless.Domain.Commands
 
         public async Task<SendMessageCommandResponse> Handle(SendMessageCommand command, CancellationToken cancellationToken)
         {
-            if (!command.Request.Headers.TryGetValue(Headers.Authorization, out var authToken))
+            var sendMessageRequest = JsonConvert.DeserializeObject<SendMessageRequest>(command.Request.Body);
+            if (sendMessageRequest == null || string.IsNullOrEmpty(sendMessageRequest.AuthToken))
                 return SendMessageCommandResponse.BadRequest();
 
-            var userId = _jwtService.VerifyJwt(authToken);
+            var userId = _jwtService.VerifyJwt(sendMessageRequest.AuthToken);
             if (!userId.HasValue || !await _dynamoDbClient.CheckUserExists(userId.Value))
                 return SendMessageCommandResponse.Unauthorized();
 
-            var sendMessageRequest = JsonConvert.DeserializeObject<SendMessageRequest>(command.Request.Body);
-            if (sendMessageRequest == null || string.IsNullOrEmpty(sendMessageRequest.Content))
+            if (string.IsNullOrEmpty(sendMessageRequest.Content))
                 return SendMessageCommandResponse.BadRequest();
 
-            var userName = _jwtService.GetClaim(authToken, Claims.UserName);
+            var userName = _jwtService.GetClaim(sendMessageRequest.AuthToken, Claims.UserName);
             await _dynamoDbClient.SaveMessage(userName, sendMessageRequest.Content);
 
             return SendMessageCommandResponse.Ok();

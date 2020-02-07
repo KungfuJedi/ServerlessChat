@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { MessagesService } from 'src/app/services/messages.service';
+import { Store } from '@ngrx/store';
+import { AppState } from 'src/app/models/app.state';
+import { sendMessage } from 'src/app/actions/message.actions';
 
 @Component({
   selector: 'chat-send-message',
@@ -9,13 +11,17 @@ import { MessagesService } from 'src/app/services/messages.service';
 export class SendMessageComponent implements OnInit {
   message: string;
 
-  constructor(private messagesService: MessagesService) { }
+  constructor(private store: Store<AppState>) { }
 
   ngOnInit() {
   }
 
   sendMessage(): void {
-    this.messagesService.sendMessage(this.message)
-      .subscribe(_ => this.message = '');
+    if (this.message.length === 0) {
+      return;
+    }
+
+    this.store.dispatch(sendMessage({content: this.message}));
+    this.message = '';
   }
 }
